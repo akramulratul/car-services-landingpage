@@ -6,16 +6,23 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { useState, useEffect } from "react";
+import initializeAuthentication from "../Pages/Login/Firebase/firebase.init";
+
+initializeAuthentication();
+
 const useFirebase = () => {
-  const [users, setUsers] = useState({});
+  const [user, setUsers] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const auth = getAuth();
 
   const signInUsingGoogle = () => {
     const googleProvider = new GoogleAuthProvider();
-    signInWithPopup(auth, googleProvider).then((result) => {
-      setUsers(result.user);
-    });
+    signInWithPopup(auth, googleProvider)
+      .then((result) => {
+        setUsers(result.user);
+      })
+      .finally(() => setIsLoading(false));
   };
 
   //observe user state change
@@ -26,16 +33,20 @@ const useFirebase = () => {
       } else {
         setUsers({});
       }
+      setIsLoading(false);
     });
     return () => unsubscribed;
   }, []);
   const logOut = () => {
-    signOut(auth).then(() => {});
+    signOut(auth)
+      .then(() => {})
+      .finally(() => setIsLoading(false));
   };
 
   return {
-    users,
+    user,
     signInUsingGoogle,
+    isLoading,
     logOut,
   };
 };
